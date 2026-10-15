@@ -19,7 +19,7 @@ npm run build
 
 ## Deployment
 
-Vercel project `four-seasons-automotive` (framework: Vite), linked to this repo; pushes to `main` deploy to production.
+Vercel project `four-seasons-automotive` (framework: Vite). The first production deploy was created from this repo's `main`. Connect the repo under Vercel → Settings → Git so later pushes to `main` deploy automatically.
 Domain `fsa.blueprintwebstudio.com` is a CNAME at Porkbun pointing to the target Vercel shows for this project.
 
 Environment variables (all optional):
