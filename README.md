@@ -34,18 +34,26 @@ The "I'm Interested" form posts to `api/demo-interest.js`, which proxies to the 
 
 ## What changed from the current site
 
-- Removed the broken template tokens shown on the live site ([GEOTITLE], [GEOPHONE], [GEOHOURSWEDNSDAY] …) and the "Twitter Not Configured" footer text.
-- Added an online appointment request form (the current site only offers "Call for Appointment").
-- Mobile-first responsive layout with hours, address and the Google rating up front.
-- New seasonal care guide that plays on the business name.
+- Real Four Seasons logo (from the current site) in the header and footer; favicon cropped from its snowflake.
+- Palette built from the logo: blue #3d56cc and orange #fe8e4c, with a deeper navy (#15205a, matching the shop's own promo flyers) for contrast. Saira Condensed headings echo the logo's condensed lettering; Barlow for body text.
+- Signature motifs: the logo's six-armed snowflake redrawn as line art, and a four-color "season stripe" (winter, spring, summer, fall) under the hero, on service photos and above the footer.
+- Hero uses the shop's tagline from its flyers ("Here for every season of your life"), the real storefront photo, hours, phone and Google rating within the first screen.
+- Credentials strip with every badge from the current site: NAPA AutoCare Gold Certified, NAPA AutoCare Center, AAA Approved Auto Repair, ASA, NAPA Peace of Mind 36/36 warranty.
+- Services: the six photo tiles from the current homepage plus all 16 categories from the Auto Repair page as a scannable list.
+- Current offers (new-driver free safety inspection, teachers 10% off labor) moved out of an auto-rotating slider into readable cards with their fine print.
+- Warranty (24/24, 36/36 with NAPA card), NAPA EasyPay financing, amenities (Wi-Fi, coffee, waiting room, shuttle within 5 mi) and payment types condensed into the "Our shop" section.
+- Reviews: Google rating and link, plus the customer quotes shown on the current homepage, quoted verbatim and labelled as from the current website.
+- Removed the broken template tokens ([GEOTITLE], [GEOPHONE], [GEOHOURSWEDNSDAY] …), "Twitter Not Configured", the empty "Offers & Coupons" and Rebates pages, and the store locator for a single-location shop.
+- Added an online appointment request form (the current site only offers "Call for Appointment") and kept the seasonal care guide that plays on the business name.
 
 ## Before client presentation
 
 - Confirm the Google rating and count. 4.9 / 351 is a fallback from a third-party listing on 2026-10-14; live data replaces it once the Places env vars are set.
-- Confirm credentials and wording: NAPA AutoCare Center, NAPA Peace of Mind Warranty (terms), AAA Approved, ASA member.
-- Confirm the services list (especially "Tires" and "Seasonal Check-ups") and the process copy ("you approve all work before it starts").
-- Add the shop's email (the current site hides it behind Cloudflare) and decide where appointment requests go.
-- Replace the CSS wordmark with the shop's real logo, and add real shop photos with permission.
+- Reviews: the current "Read Our Reviews" page loads its reviews through a widget that the site mirror did not capture, so the concept uses the homepage quotes. Kathy Ferriola's is complete; the Damian & Jackie Wicks quote is cut off on the current site too (shown as an excerpt). A third homepage quote ("Rob from Curbside…", Joanne Conboy) was left out because it names a different business. Get full review text (or turn on the Places API) before launch.
+- Confirm the email address fourseasonsinlakewood@gmail.com (decoded from the current site's protected link) and where appointment requests should go.
+- Confirm the two offers are still running (new-driver inspection is marked good through the 2026–27 school year; teachers' discount up to $75) and whether the winter check-up is a paid service or a promotion.
+- Confirm credentials and wording: NAPA AutoCare Gold, AAA Approved, ASA membership, NAPA Peace of Mind warranty terms and NAPA EasyPay financing.
+- Photos are the shop's own storefront and front-counter photos plus the service tiles from the current site (likely stock). Higher-resolution shop and team photos would help the hero most.
 - The seasonal checklists are general guidance written for the concept; have the shop review them.
 - Keep the independent-concept disclaimer visible; do not imply this is the company's official site.
 - The countdown is display-only, not access control. The subdomain is public to anyone with the URL.

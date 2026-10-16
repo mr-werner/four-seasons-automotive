@@ -1,17 +1,15 @@
 import blueprintLogo from "./assets/blueprint-webstudio-logo.png";
+import fsaLogo from "./assets/fsa-logo.png";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
-  BadgeCheck,
-  CalendarCheck,
-  CarFront,
+  Bus,
   CheckCircle2,
   Clock,
-  Disc3,
-  Facebook,
+  Coffee,
+  CreditCard,
   Flower2,
-  Gauge,
   Leaf,
   MapPin,
   Menu,
@@ -20,22 +18,23 @@ import {
   Plus,
   ShieldCheck,
   Snowflake,
-  Star,
+  Sofa,
   Sun,
-  Thermometer,
-  Wrench,
+  Wifi,
   X,
-  Zap,
 } from "lucide-react";
+import { FacebookIcon, GoogleIcon, YelpIcon } from "./social-icons.jsx";
 
 // -----------------------------------------------------------------------------
 // COMPANY DETAILS AND CONTENT
+// Everything below comes from fourseasonsautomotive.com unless noted.
 // -----------------------------------------------------------------------------
 
 const COMPANY = "Four Seasons Automotive";
 const PHONE = "3039865202";
 const PHONE_DISPLAY = "(303) 986-5202";
-const EMAIL = ""; // The current site hides the shop email behind Cloudflare; add it once confirmed.
+// Decoded from the Cloudflare-protected address on the current site; confirm before launch.
+const EMAIL = "fourseasonsinlakewood@gmail.com";
 const ADDRESS = "1801 S Wadsworth Blvd";
 const CITY = "Lakewood, CO 80232";
 const MAPS_QUERY = "Four Seasons Automotive, 1801 S Wadsworth Blvd, Lakewood, CO 80232";
@@ -55,52 +54,88 @@ const STUDIO_SOURCE = "fsa.blueprintwebstudio.com";
 const END_DATE = import.meta.env.VITE_CONCEPT_END_DATE || "2026-11-15T23:59:59-07:00";
 
 const HOURS = [
-  ["Monday – Friday", "7:30 am – 5:30 pm"],
+  ["Mon – Fri", "7:30 am – 5:30 pm"],
   ["Saturday", "Closed"],
   ["Sunday", "Closed"],
 ];
 
-const SERVICES = [
-  { title: "Auto Repair & Diagnostics", desc: "Check-engine lights, drivability problems and the noises you can't place, tracked down and explained before any work starts.", icon: Wrench },
-  { title: "Brakes", desc: "Pads, rotors, calipers and fluid service so every stop on Wadsworth and I-70 is a confident one.", icon: Disc3 },
-  { title: "Wheel Alignments", desc: "Precision alignments that stop the pull, protect your tires and keep the steering wheel centered.", icon: Gauge },
-  { title: "Steering & Suspension", desc: "Shocks, struts, ball joints and tie rods for a ride that stays planted on rough Colorado roads.", icon: CarFront },
-  { title: "Climate Control", desc: "A/C recharges and repairs for July, heater and defrost service for January.", icon: Thermometer },
-  { title: "Electrical Systems", desc: "Batteries, starters, alternators and wiring faults diagnosed with the right equipment.", icon: Zap },
-  { title: "Tires", desc: "New tires, mounting, balancing and rotations, matched to how and where you drive.", icon: Disc3 },
-  { title: "Seasonal Check-ups", desc: "A once-over before the weather turns, so small problems get fixed before they strand you.", icon: CalendarCheck },
+// Photo services from the current homepage tiles.
+const FEATURED = [
+  { title: "Wheel Alignments", photo: "/photos/alignment.webp", desc: "Camber, caster and toe set to factory spec, so the car tracks straight and tires wear evenly." },
+  { title: "Brake Repair", photo: "/photos/brakes.webp", desc: "Inspections, pads, rotors, front and rear disc and drum brakes, parking brake adjustment." },
+  { title: "Steering & Suspension", photo: "/photos/suspension.webp", desc: "Shocks, struts, ball joints, tie rods and sway links for a planted, quiet ride." },
+  { title: "Climate Control", photo: "/photos/climate.webp", desc: "A/C diagnosis and service for July. Heater and defrost service for January." },
+  { title: "Electrical Systems", photo: "/photos/electrical.webp", desc: "Dashboard warning lights, lighting, power windows, locks and sunroofs." },
+  { title: "Tire Services", photo: "/photos/tires.webp", desc: "Tire sales, mounting, balancing, rotation and TPMS service." },
+];
+
+// Full category list from the current "Auto Repair" page.
+const ALL_SERVICES = [
+  "Axle, CV Joint & Driveshaft",
+  "Belts & Hoses",
+  "Brake Repair",
+  "Climate Control",
+  "Cooling System",
+  "Electrical & Electronics",
+  "Engine Diagnostics",
+  "Four-Wheel Drive",
+  "Oil & Filter Change",
+  "Preventive Maintenance",
+  "Starting, Charging & Batteries",
+  "Steering & Suspension",
+  "TPMS",
+  "Tire Services",
+  "Transmission Service",
+  "Wheel Alignment",
 ];
 
 const SEASONS = [
-  { name: "Winter", icon: Snowflake, tone: "winter", lead: "Cold starts and slick roads.", items: ["Battery load test", "Tire tread and pressure", "Antifreeze strength", "Wipers, washer fluid and defrost"] },
-  { name: "Spring", icon: Flower2, tone: "spring", lead: "Recover from the pothole season.", items: ["Alignment check", "Suspension and steering inspection", "Brake inspection", "Undercarriage rinse and look-over"] },
-  { name: "Summer", icon: Sun, tone: "summer", lead: "Heat and mountain road trips.", items: ["A/C performance test", "Cooling system and hoses", "Belts and fluids", "Tire condition before long drives"] },
-  { name: "Fall", icon: Leaf, tone: "fall", lead: "Get ready before the first snow.", items: ["Heater and defrost", "Lights and electrical", "Battery and charging system", "Winter tire planning"] },
+  { name: "Winter", months: "Dec–Feb", icon: Snowflake, tone: "winter", lead: "Cold starts, slick roads.", items: ["Battery load test", "Wipers and washer fluid", "Antifreeze strength", "Tire tread and pressure"] },
+  { name: "Spring", months: "Mar–May", icon: Flower2, tone: "spring", lead: "After pothole season.", items: ["Alignment check", "Steering and suspension", "Brake inspection", "Undercarriage look-over"] },
+  { name: "Summer", months: "Jun–Aug", icon: Sun, tone: "summer", lead: "Heat and mountain trips.", items: ["A/C performance", "Cooling system and hoses", "Belts and fluids", "Tires before long drives"] },
+  { name: "Fall", months: "Sep–Nov", icon: Leaf, tone: "fall", lead: "Before the first snow.", items: ["Heater and defrost", "Lights and electrical", "Battery and charging", "Winter tire planning"] },
 ];
 
-const PROCESS = [
-  ["01", "Request a time", "Book online or call the shop. Tell us what you're noticing and when works for you."],
-  ["02", "We inspect and call", "A technician diagnoses the problem and we call you with clear options and pricing."],
-  ["03", "You approve", "No work starts until you say yes. You decide what gets done today and what can wait."],
-  ["04", "Back on the road", "Pick up your car with a walk-through of the work and what to watch for next."],
+// Badges shown on the current site (homepage logo row and NAPA pages).
+const AWARDS = [
+  { src: "/badges/napa-gold.png", alt: "NAPA AutoCare Gold Certified", label: "NAPA AutoCare Gold Certified", round: true },
+  { src: "/badges/napa-autocare.png", alt: "NAPA AutoCare Center", label: "NAPA AutoCare Center" },
+  { src: "/badges/aaa-approved.png", alt: "AAA Approved Auto Repair", label: "AAA Approved Auto Repair" },
+  { src: "/badges/asa.png", alt: "ASA, Automotive Service Association", label: "Automotive Service Association" },
+  { src: "/badges/napa-warranty-36.png", alt: "NAPA Peace of Mind 36 month / 36,000 mile nationwide warranty", label: "Peace of Mind Warranty", round: true },
 ];
 
-const CREDENTIALS = [
-  { title: "NAPA AutoCare Center", desc: "Part of NAPA's network of independent repair shops held to its service standards." },
-  { title: "NAPA Peace of Mind Warranty", desc: "Qualifying repairs are backed by NAPA's nationwide warranty, honored at participating shops." },
-  { title: "AAA Approved Auto Repair", desc: "Listed as a AAA Approved Auto Repair facility." },
-  { title: "ASA Member", desc: "Member of the Automotive Service Association." },
+// Current promotions from the homepage slider and banner.
+const OFFERS = [
+  { tag: "New drivers", title: "Free safety inspection", text: "Student drivers with a valid permit or new license get a free safety inspection and vehicle check-up: tires, brakes, battery, fluids, lights and wipers.", fine: "Excludes check-engine-light and in-depth diagnostics. Good through the 2026–27 school year.", img: "/photos/offer-new-drivers.webp" },
+  { tag: "Teachers", title: "10% off labor", text: "All teachers receive 10% off labor on any needed service. Thank you for what you do.", fine: "Not combinable with other coupons. Up to $75 off.", img: "/photos/offer-teachers.webp" },
 ];
+
+// Verbatim from "What Our Customers Say" on the current homepage. Excerpts end where the
+// current site cuts them off; replace with full text from the shop's review page.
+const TESTIMONIALS = [
+  { quote: "They are always so nice and honest. would recommend them for all your car needs.", name: "Kathy Ferriola" },
+  { quote: "Excellent service! Professional, knowledgeable…", name: "Damian & Jackie Wicks" },
+];
+
+const AMENITIES = [
+  { icon: Wifi, label: "Free Wi-Fi" },
+  { icon: Coffee, label: "Free coffee" },
+  { icon: Sofa, label: "Waiting room" },
+  { icon: Bus, label: "Shuttle within 5 miles" },
+];
+
+const PAYMENTS = ["Visa", "Mastercard", "American Express", "Discover", "Cash", "Check", "NAPA EasyPay card"];
 
 const AREAS = ["Lakewood", "Denver", "Wheat Ridge"];
 
 const SOCIAL_LINKS = [
-  { name: "Facebook", url: "https://www.facebook.com/FourSeasonsAutomotiveLakewoodCO", icon: Facebook },
-  { name: "Google", url: GOOGLE_REVIEWS_URL, icon: Star },
-  { name: "Yelp", url: "https://www.yelp.com/biz/four-seasons-automotive-lakewood", icon: ArrowUpRight },
+  { name: "Facebook", url: "https://www.facebook.com/FourSeasonsAutomotiveLakewoodCO/", icon: FacebookIcon },
+  { name: "Google", url: GOOGLE_REVIEWS_URL, icon: GoogleIcon },
+  { name: "Yelp", url: "https://www.yelp.com/biz/four-seasons-automotive-lakewood", icon: YelpIcon },
 ];
 
-const SERVICE_OPTIONS = ["Not sure / diagnosis", ...SERVICES.map((service) => service.title), "Oil change / maintenance"];
+const SERVICE_OPTIONS = ["Not sure / diagnosis", ...ALL_SERVICES, "New driver safety inspection"];
 
 // -----------------------------------------------------------------------------
 // CONCEPT COUNTDOWN + INTEREST FORM (Blueprint WebStudio)
@@ -264,19 +299,29 @@ function ConceptWidget() {
 }
 
 // -----------------------------------------------------------------------------
-// HEADER
+// SIGNATURE MOTIF: the logo's six-armed snowflake, redrawn as line art
 // -----------------------------------------------------------------------------
 
-function BrandMark() {
+function Flake({ className = "" }) {
+  const arm = "M50 50 L50 6 M50 20 L40 11 M50 20 L60 11 M50 33 L41 25 M50 33 L59 25";
   return (
-    <span className="brand-mark" aria-hidden="true">
-      <svg viewBox="0 0 48 48">
-        <path d="M24 4v40M4 24h40" />
-        <circle cx="24" cy="24" r="10" />
-      </svg>
-    </span>
+    <svg className={`flake ${className}`} viewBox="0 0 100 100" aria-hidden="true">
+      {[0, 60, 120, 180, 240, 300].map((deg) => <path key={deg} d={arm} transform={`rotate(${deg} 50 50)`} />)}
+    </svg>
   );
 }
+
+function SeasonStripe() {
+  return (
+    <div className="season-stripe" aria-hidden="true">
+      {SEASONS.map(({ name, tone }) => <span key={name} className={tone} />)}
+    </div>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// HEADER
+// -----------------------------------------------------------------------------
 
 function SiteHeader() {
   const [menu, setMenu] = useState(false);
@@ -284,27 +329,32 @@ function SiteHeader() {
 
   return (
     <div className="sticky-header">
-      <div className="announce">
-        <div className="container announce-inner">
-          <span>Family owned in Lakewood since {FOUNDED} · NAPA AutoCare Center · AAA Approved</span>
-          <a href={`tel:${PHONE}`}><Phone size={13} /> {PHONE_DISPLAY}</a>
+      <div className="topbar">
+        <div className="container topbar-inner">
+          <span className="topbar-item"><Clock size={14} /> Mon–Fri 7:30–5:30</span>
+          <a className="topbar-item hide-sm" href="#visit"><MapPin size={14} /> {ADDRESS}, Lakewood</a>
+          <span className="topbar-social">
+            {SOCIAL_LINKS.map(({ name, url, icon: Icon }) => (
+              <a key={name} href={url} target="_blank" rel="noopener noreferrer" aria-label={`${COMPANY} on ${name}`}><Icon size={14} /></a>
+            ))}
+          </span>
         </div>
       </div>
       <header className="header">
         <div className="container nav">
           <a className="brand" href="#home" onClick={closeMenu} aria-label={`${COMPANY} home`}>
-            <BrandMark />
-            <span className="brand-text"><strong>Four Seasons</strong><small>AUTOMOTIVE · EST. {FOUNDED}</small></span>
+            <img src={fsaLogo} alt={`${COMPANY}, Neighborhood Automotive Experts`} width="356" height="125" />
           </a>
           <nav className={menu ? "links open" : "links"} aria-label="Main navigation">
             <a href="#services" onClick={closeMenu}>Services</a>
+            <a href="#offers" onClick={closeMenu}>Offers</a>
             <a href="#seasons" onClick={closeMenu}>Seasonal Care</a>
-            <a href="#about" onClick={closeMenu}>Why Us</a>
+            <a href="#about" onClick={closeMenu}>Our Shop</a>
             <a href="#reviews" onClick={closeMenu}>Reviews</a>
-            <a href="#visit" onClick={closeMenu}>Visit</a>
             <a className="links-cta" href="#book" onClick={closeMenu}>Book a Visit</a>
           </nav>
-          <a className="nav-cta" href="#book">Book a Visit <ArrowUpRight size={17} /></a>
+          <a className="nav-phone" href={`tel:${PHONE}`}><Phone size={17} /><span>{PHONE_DISPLAY}</span></a>
+          <a className="nav-cta" href="#book">Book a Visit</a>
           <button className="mobile-toggle" type="button" aria-label="Toggle navigation" aria-expanded={menu} onClick={() => setMenu((current) => !current)}>
             {menu ? <X /> : <Menu />}
           </button>
@@ -322,38 +372,63 @@ function Hero({ rating }) {
   const years = new Date().getFullYear() - FOUNDED;
   return (
     <section className="hero">
-      <div className="hero-grid" aria-hidden="true" />
+      <Flake className="hero-flake" />
       <div className="container hero-inner">
         <div className="hero-copy">
-          <span className="eyebrow light">LAKEWOOD, COLORADO · SINCE {FOUNDED}</span>
-          <h1>Honest car care for <em>every Colorado season.</em></h1>
+          <span className="kicker"><Snowflake size={15} /> Neighborhood automotive experts · Lakewood, CO</span>
+          <h1>Here for every season <span>of your life.</span></h1>
           <p>
-            Family-owned auto repair and tires on South Wadsworth. Straight answers, careful work,
-            and a team that has kept Lakewood, Denver and Wheat Ridge drivers on the road for {years} years.
+            Dependable car care since {FOUNDED}. A family-owned NAPA AutoCare Center on South Wadsworth,
+            keeping Lakewood, Denver and Wheat Ridge drivers on the road for {years} years.
           </p>
           <div className="hero-actions">
-            <a className="btn primary" href="#book">Request an Appointment <ArrowUpRight size={19} /></a>
-            <a className="btn ghost" href={`tel:${PHONE}`}><Phone size={18} /> {PHONE_DISPLAY}</a>
+            <a className="btn orange" href="#book">Request an Appointment <ArrowUpRight size={19} /></a>
+            <a className="btn line" href={`tel:${PHONE}`}><Phone size={18} /> {PHONE_DISPLAY}</a>
+          </div>
+          <a className="hero-rating" href={rating.googleMapsUri || GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer">
+            <GoogleIcon size={18} />
+            <strong>{rating.rating.toFixed(1)}</strong>
+            <span className="stars" aria-hidden="true">★★★★★</span>
+            <span>{rating.userRatingCount.toLocaleString()} Google reviews</span>
+          </a>
+        </div>
+        <div className="hero-media">
+          <figure className="hero-photo">
+            <img src="/photos/storefront.webp" alt="The Four Seasons Automotive shop at 1801 S Wadsworth Blvd in Lakewood" width="1234" height="774" />
+          </figure>
+          <div className="hero-since" aria-label={`Family owned since ${FOUNDED}`}>
+            <Flake />
+            <small>Family owned</small>
+            <strong>{FOUNDED}</strong>
+            <small>{years} years</small>
+          </div>
+          <div className="hero-hours">
+            <span><Clock size={16} /> <b>Open Mon–Fri</b> 7:30 am – 5:30 pm</span>
+            <span><MapPin size={16} /> {ADDRESS}</span>
           </div>
         </div>
-        <aside className="hero-card" aria-label="Shop at a glance">
-          <a className="hero-rating" href={rating.googleMapsUri || GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer">
-            <span className="stars" aria-hidden="true">★★★★★</span>
-            <strong>{rating.rating.toFixed(1)}</strong>
-            <span>on Google · {rating.userRatingCount.toLocaleString()} reviews</span>
-          </a>
-          <ul>
-            <li><Clock size={18} /><span><b>Hours</b>Mon–Fri, 7:30 am – 5:30 pm</span></li>
-            <li><MapPin size={18} /><span><b>{ADDRESS}</b>{CITY}</span></li>
-            <li><ShieldCheck size={18} /><span><b>NAPA Peace of Mind Warranty</b>On qualifying repairs</span></li>
-          </ul>
-        </aside>
       </div>
-      <div className="container stats">
-        <div><strong>{FOUNDED}</strong><span>Serving Lakewood since</span></div>
-        <div><strong>{years}+ yrs</strong><span>Family owned and operated</span></div>
-        <div><strong>{rating.rating.toFixed(1)} ★</strong><span>Google rating</span></div>
-        <div><strong>NAPA</strong><span>AutoCare Center</span></div>
+      <SeasonStripe />
+    </section>
+  );
+}
+
+function Awards() {
+  return (
+    <section className="awards" aria-labelledby="awards-title">
+      <div className="container awards-inner">
+        <div className="awards-head">
+          <span className="eyebrow">Credentials</span>
+          <h2 id="awards-title">Certified, approved, backed nationwide.</h2>
+        </div>
+        <ul className="awards-row">
+          {AWARDS.map(({ src, alt, label, round }) => (
+            <li key={label} className={round ? "round" : ""}>
+              <img src={src} alt={alt} loading="lazy" />
+              <span>{label}</span>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );
@@ -365,21 +440,60 @@ function Services() {
       <div className="container">
         <div className="section-head">
           <div>
-            <span className="eyebrow">WHAT WE DO</span>
-            <h2>Complete repair, <em>under one roof.</em></h2>
+            <span className="eyebrow">What we fix</span>
+            <h2>Complete auto repair, <em>one trusted shop.</em></h2>
           </div>
-          <p>From a squeaky brake to a check-engine light that won't go away, the same team diagnoses it, explains it, and fixes it right.</p>
+          <p>Cars, SUVs and medium-duty trucks, most makes and models. Our technicians explain the problem and the fix before any work starts.</p>
         </div>
         <div className="services-grid">
-          {SERVICES.map(({ title, desc, icon: Icon }, index) => (
+          {FEATURED.map(({ title, photo, desc }, index) => (
             <article className="service-card" key={title}>
-              <div className="service-top">
-                <span className="service-icon"><Icon size={24} strokeWidth={1.6} /></span>
+              <div className="service-photo">
+                <img src={photo} alt="" loading="lazy" width="435" height="374" />
                 <span className="service-num">{String(index + 1).padStart(2, "0")}</span>
               </div>
-              <h3>{title}</h3>
-              <p>{desc}</p>
-              <a href="#book" data-service={title}>Book this service <ArrowRight size={15} /></a>
+              <div className="service-body">
+                <h3>{title}</h3>
+                <p>{desc}</p>
+                <a href="#book" data-service={title === "Electrical Systems" ? "Electrical & Electronics" : title === "Wheel Alignments" ? "Wheel Alignment" : title}>Book this <ArrowRight size={15} /></a>
+              </div>
+            </article>
+          ))}
+        </div>
+        <div className="all-services">
+          <h3>Everything we service</h3>
+          <ul>
+            {ALL_SERVICES.map((service) => <li key={service}>{service}</li>)}
+          </ul>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Offers() {
+  return (
+    <section className="section offers" id="offers">
+      <Flake className="offers-flake" />
+      <div className="container">
+        <div className="section-head">
+          <div>
+            <span className="eyebrow light">Current offers</span>
+            <h2>A little thank-you <em>from the shop.</em></h2>
+          </div>
+          <p>Mention the offer when you call or book. Ask about our winter vehicle check-up too: wipers, battery and coolant, before the snow.</p>
+        </div>
+        <div className="offers-grid">
+          {OFFERS.map(({ tag, title, text, fine, img }) => (
+            <article className="offer-card" key={title}>
+              <img src={img} alt={`${title} flyer`} loading="lazy" width="683" height="1024" />
+              <div>
+                <span className="offer-tag">{tag}</span>
+                <h3>{title}</h3>
+                <p>{text}</p>
+                <small>{fine}</small>
+                <a className="btn navy" href="#book" data-service={tag === "New drivers" ? "New driver safety inspection" : ""}>Claim it <ArrowRight size={16} /></a>
+              </div>
             </article>
           ))}
         </div>
@@ -394,15 +508,18 @@ function Seasons() {
       <div className="container">
         <div className="section-head">
           <div>
-            <span className="eyebrow light">SEASONAL CARE GUIDE</span>
-            <h2>Four seasons. <em>One checklist each.</em></h2>
+            <span className="eyebrow light">Seasonal care guide</span>
+            <h2>Four seasons. <em>Sometimes in one week.</em></h2>
           </div>
-          <p>Colorado can deliver all four in a week. Here's what we look at before each one, so the weather never catches your car off guard.</p>
+          <p>Colorado weather is hard on cars. Here's what we look at before each season so it never catches you off guard.</p>
         </div>
         <div className="seasons-grid">
-          {SEASONS.map(({ name, icon: Icon, tone, lead, items }) => (
+          {SEASONS.map(({ name, months, icon: Icon, tone, lead, items }) => (
             <article className={`season-card ${tone}`} key={name}>
-              <span className="season-icon"><Icon size={26} strokeWidth={1.5} /></span>
+              <div className="season-top">
+                <span className="season-icon"><Icon size={24} strokeWidth={1.6} /></span>
+                <span className="season-q">{months}</span>
+              </div>
               <h3>{name}</h3>
               <p>{lead}</p>
               <ul>
@@ -416,58 +533,43 @@ function Seasons() {
   );
 }
 
-function Process() {
-  return (
-    <section className="section process">
-      <div className="container">
-        <div className="section-head">
-          <div>
-            <span className="eyebrow">HOW IT WORKS</span>
-            <h2>No surprises. <em>Ever.</em></h2>
-          </div>
-          <p>You'll always know what's wrong, what it costs, and what can wait before anyone picks up a wrench.</p>
-        </div>
-        <div className="process-grid">
-          {PROCESS.map(([number, title, description]) => (
-            <article key={number}>
-              <span>{number}</span>
-              <h3>{title}</h3>
-              <p>{description}</p>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function About() {
+  const years = new Date().getFullYear() - FOUNDED;
   return (
     <section className="section about" id="about">
       <div className="container about-inner">
-        <div className="about-media" aria-hidden="true">
-          <div className="about-quads">
-            {SEASONS.map(({ name, icon: Icon, tone }) => (
-              <span className={`about-quad ${tone}`} key={name}><Icon size={34} strokeWidth={1.4} /><small>{name}</small></span>
-            ))}
-          </div>
-          <div className="about-badge"><strong>{FOUNDED}</strong><span>Family owned since</span></div>
+        <div className="about-media">
+          <img src="/photos/front-desk.webp" alt="The front counter inside Four Seasons Automotive" width="811" height="596" />
+          <div className="about-years"><strong>{years}</strong><span>years on<br />South Wadsworth</span></div>
         </div>
-        <div>
-          <span className="eyebrow">WHY LAKEWOOD TRUSTS US</span>
-          <h2>A family shop, <em>not a franchise.</em></h2>
+        <div className="about-copy">
+          <span className="eyebrow">Our shop</span>
+          <h2>Family owned and operated <em>since {FOUNDED}.</em></h2>
           <p className="about-lead">
-            Four Seasons Automotive has been family owned and operated on South Wadsworth since {FOUNDED}.
-            The goal hasn't changed: do the job right, treat people fairly, and earn customers for life.
+            Four Seasons Automotive has served Lakewood and the surrounding communities for {years} years.
+            Our technicians answer your questions, give you the best solution for your vehicle, and use quality parts at fair prices.
+            We'd rather earn a customer for life than make one sale.
           </p>
-          <div className="credentials">
-            {CREDENTIALS.map(({ title, desc }) => (
-              <div key={title}>
-                <BadgeCheck size={22} strokeWidth={1.6} />
-                <span><strong>{title}</strong>{desc}</span>
-              </div>
-            ))}
+          <ul className="amenities">
+            {AMENITIES.map(({ icon: Icon, label }) => <li key={label}><Icon size={19} strokeWidth={1.7} /> {label}</li>)}
+          </ul>
+          <div className="assurance">
+            <div>
+              <ShieldCheck size={26} strokeWidth={1.6} />
+              <span>
+                <strong>NAPA Peace of Mind® Warranty</strong>
+                Free on qualifying repairs: 24 months / 24,000 miles, extended to 36 months / 36,000 miles when you pay with a NAPA credit card. Honored at 14,000+ locations nationwide.
+              </span>
+            </div>
+            <div>
+              <CreditCard size={26} strokeWidth={1.6} />
+              <span>
+                <strong>Financing with NAPA EasyPay</strong>
+                Special financing on qualifying purchases, subject to credit approval. Ask us for details.
+              </span>
+            </div>
           </div>
+          <p className="payments"><b>We accept</b> {PAYMENTS.join(" · ")}</p>
         </div>
       </div>
     </section>
@@ -475,45 +577,47 @@ function About() {
 }
 
 function Reviews({ data, rating }) {
-  const reviews = data?.reviews?.filter((review) => review.text?.text || review.originalText?.text) || [];
+  const live = data?.reviews?.filter((review) => review.text?.text || review.originalText?.text) || [];
   return (
     <section className="section reviews" id="reviews">
       <div className="container">
-        <div className="section-head">
+        <div className="reviews-top">
           <div>
-            <span className="eyebrow">CUSTOMER REVIEWS</span>
-            <h2>Rated {rating.rating.toFixed(1)} by <em>{rating.userRatingCount.toLocaleString()} neighbors.</em></h2>
+            <span className="eyebrow">Reviews</span>
+            <h2>{rating.rating.toFixed(1)} stars from <em>{rating.userRatingCount.toLocaleString()} neighbors.</em></h2>
           </div>
-          <p>Read what Lakewood drivers say about the shop on Google.</p>
-        </div>
-        <div className="reviews-summary">
-          <div>
-            <span className="google-wordmark">Google</span>
-            <strong>{rating.rating.toFixed(1)} <span className="stars">★★★★★</span></strong>
-            <span>{rating.userRatingCount.toLocaleString()} Google reviews</span>
-          </div>
-          <div className="reviews-actions">
-            <a className="btn dark" href={rating.googleMapsUri || GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer">Read reviews on Google <ArrowUpRight size={17} /></a>
-            <a className="btn outline" href={GOOGLE_WRITE_REVIEW_URL} target="_blank" rel="noopener noreferrer">Leave a review</a>
-          </div>
-        </div>
-        {reviews.length > 0 && (
-          <>
-            <div className="reviews-grid">
-              {reviews.slice(0, 3).map((review, i) => (
-                <article className="review-card" key={`${review.publishTime || i}-${i}`}>
-                  <div className="stars" aria-label={`${review.rating} out of 5 stars`}>{"★".repeat(Math.max(0, Math.min(5, Math.round(review.rating || 0))))}</div>
-                  <p>{review.text?.text || review.originalText?.text}</p>
-                  <footer>
-                    <strong>{review.authorAttribution?.displayName || "Google reviewer"}</strong>
-                    <small>{review.relativePublishTimeDescription}</small>
-                  </footer>
-                </article>
-              ))}
+          <div className="reviews-score">
+            <GoogleIcon size={26} />
+            <div>
+              <strong>{rating.rating.toFixed(1)} <span className="stars" aria-hidden="true">★★★★★</span></strong>
+              <span>{rating.userRatingCount.toLocaleString()} Google reviews</span>
             </div>
-            <p className="reviews-attribution">Reviews provided by Google. A limited selection is displayed.</p>
-          </>
-        )}
+          </div>
+        </div>
+        <div className="reviews-grid">
+          {live.length > 0
+            ? live.slice(0, 3).map((review, i) => (
+              <figure className="review-card" key={`${review.publishTime || i}-${i}`}>
+                <div className="stars" aria-label={`${review.rating} out of 5 stars`}>{"★".repeat(Math.max(0, Math.min(5, Math.round(review.rating || 0))))}</div>
+                <blockquote>{review.text?.text || review.originalText?.text}</blockquote>
+                <figcaption><strong>{review.authorAttribution?.displayName || "Google reviewer"}</strong><small>Google review · {review.relativePublishTimeDescription}</small></figcaption>
+              </figure>
+            ))
+            : TESTIMONIALS.map(({ quote, name }) => (
+              <figure className="review-card" key={name}>
+                <div className="stars" aria-label="5 out of 5 stars">★★★★★</div>
+                <blockquote>“{quote}”</blockquote>
+                <figcaption><strong>{name}</strong><small>Customer review, from the current website</small></figcaption>
+              </figure>
+            ))}
+          <div className="review-card review-cta">
+            <Flake />
+            <p>Read what Lakewood drivers say, or tell us how we did.</p>
+            <a className="btn navy" href={rating.googleMapsUri || GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer">Read reviews on Google <ArrowUpRight size={17} /></a>
+            <a className="text-link" href={GOOGLE_WRITE_REVIEW_URL} target="_blank" rel="noopener noreferrer">Leave a review</a>
+          </div>
+        </div>
+        {live.length > 0 && <p className="reviews-attribution">Reviews provided by Google. A limited selection is displayed.</p>}
       </div>
     </section>
   );
@@ -527,7 +631,7 @@ function AppointmentForm() {
   useEffect(() => {
     const pick = (event) => {
       const link = event.target.closest?.("a[data-service]");
-      if (link) setForm((prev) => ({ ...prev, service: link.dataset.service }));
+      if (link && link.dataset.service) setForm((prev) => ({ ...prev, service: link.dataset.service }));
     };
     document.addEventListener("click", pick);
     return () => document.removeEventListener("click", pick);
@@ -565,13 +669,14 @@ function AppointmentForm() {
             ? "In this concept preview, requests aren't sent anywhere. On the live site they'd land in the shop's inbox with the customer's vehicle and preferred date."
             : `Thanks, ${form.name.split(" ")[0]}. We'll call you to confirm a time.`}
         </p>
-        <button type="button" className="btn dark" onClick={() => setStatus("idle")}>Back to the form</button>
+        <button type="button" className="btn navy" onClick={() => setStatus("idle")}>Back to the form</button>
       </div>
     );
   }
 
   return (
     <form className="book-form" onSubmit={submit}>
+      <h3>Request an appointment</h3>
       <div className="book-row">
         <label>Name *<input value={form.name} onChange={(e) => update("name", e.target.value)} required maxLength={120} autoComplete="name" /></label>
         <label>Phone *<input type="tel" value={form.phone} onChange={(e) => update("phone", e.target.value)} required maxLength={40} autoComplete="tel" /></label>
@@ -592,60 +697,42 @@ function AppointmentForm() {
       <label>What's going on?<textarea rows={4} value={form.notes} onChange={(e) => update("notes", e.target.value)} maxLength={3000} placeholder="Noises, warning lights, when it started…" /></label>
       <div className="interest-honeypot" aria-hidden="true"><label>Website<input type="text" tabIndex={-1} autoComplete="off" value={form.website} onChange={(e) => update("website", e.target.value)} /></label></div>
       {message && <p className="form-error" role="alert">{message}</p>}
-      <button type="submit" className="btn primary full" disabled={status === "sending"}>{status === "sending" ? "Sending…" : "Request Appointment"} <ArrowUpRight size={18} /></button>
+      <button type="submit" className="btn orange full" disabled={status === "sending"}>{status === "sending" ? "Sending…" : "Request Appointment"} <ArrowUpRight size={18} /></button>
       <p className="form-note">We'll call to confirm your time. Need it sooner? Call <a href={`tel:${PHONE}`}>{PHONE_DISPLAY}</a>.</p>
     </form>
   );
 }
 
-function Book() {
-  return (
-    <section className="section book" id="book">
-      <div className="container book-inner">
-        <div>
-          <span className="eyebrow light">BOOK A VISIT</span>
-          <h2>Skip the phone tag. <em>Request a time online.</em></h2>
-          <p>Tell us about your car and when you'd like to bring it in. We'll call to confirm.</p>
-          <ul className="book-points">
-            <li><CheckCircle2 size={18} /> You approve all work before it starts</li>
-            <li><CheckCircle2 size={18} /> NAPA nationwide warranty on qualifying repairs</li>
-            <li><CheckCircle2 size={18} /> Family owned in Lakewood since {FOUNDED}</li>
-          </ul>
-        </div>
-        <AppointmentForm />
-      </div>
-    </section>
-  );
-}
-
-function Visit() {
+function BookVisit() {
   const embed = `https://maps.google.com/maps?q=${encodeURIComponent(MAPS_QUERY)}&z=15&output=embed`;
   const directions = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(MAPS_QUERY)}`;
   return (
-    <section className="section visit" id="visit">
-      <div className="container visit-inner">
-        <div className="visit-info">
-          <span className="eyebrow">VISIT THE SHOP</span>
-          <h2>Find us on <em>South Wadsworth.</em></h2>
-          <div className="visit-blocks">
+    <section className="section book" id="book">
+      <Flake className="book-flake" />
+      <div className="container book-inner">
+        <div className="visit-info" id="visit">
+          <span className="eyebrow light">Book a visit</span>
+          <h2>Skip the phone tag. <em>Request a time online.</em></h2>
+          <p>Tell us about your car and when you'd like to bring it in. We'll call to confirm, and no work starts until you approve it.</p>
+          <dl className="visit-blocks">
             <div>
-              <MapPin size={20} />
-              <span><small>ADDRESS</small>{ADDRESS}<br />{CITY}</span>
+              <dt><MapPin size={18} /> Address</dt>
+              <dd>{ADDRESS}<br />{CITY}<br /><a href={directions} target="_blank" rel="noopener noreferrer">Get directions <ArrowUpRight size={14} /></a></dd>
             </div>
             <div>
-              <Phone size={20} />
-              <span><small>PHONE</small><a href={`tel:${PHONE}`}>{PHONE_DISPLAY}</a></span>
+              <dt><Phone size={18} /> Call</dt>
+              <dd><a className="big-phone" href={`tel:${PHONE}`}>{PHONE_DISPLAY}</a><a href={`mailto:${EMAIL}`}>{EMAIL}</a></dd>
             </div>
             <div>
-              <Clock size={20} />
-              <span><small>HOURS</small>
-                {HOURS.map(([day, hours]) => <span className="hours-row" key={day}><b>{day}</b>{hours}</span>)}
-              </span>
+              <dt><Clock size={18} /> Hours</dt>
+              <dd>{HOURS.map(([day, hours]) => <span className="hours-row" key={day}><b>{day}</b>{hours}</span>)}</dd>
             </div>
-          </div>
-          <a className="btn dark" href={directions} target="_blank" rel="noopener noreferrer">Get Directions <ArrowUpRight size={17} /></a>
-          <p className="areas">Serving {AREAS.join(", ")} and the surrounding west metro.</p>
+          </dl>
+          <p className="areas">Proudly serving {AREAS.join(", ")} and the surrounding west metro.</p>
         </div>
+        <AppointmentForm />
+      </div>
+      <div className="container">
         <div className="visit-map">
           <iframe title={`Map to ${COMPANY}`} src={embed} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
         </div>
@@ -657,31 +744,33 @@ function Visit() {
 function Footer() {
   return (
     <footer className="footer">
+      <SeasonStripe />
       <div className="container footer-main">
-        <div>
-          <a className="brand" href="#home"><BrandMark /><span className="brand-text"><strong>Four Seasons</strong><small>AUTOMOTIVE · EST. {FOUNDED}</small></span></a>
-          <p>Family-owned auto repair and tires serving Lakewood, Denver and Wheat Ridge since {FOUNDED}.</p>
+        <div className="footer-brand">
+          <img src={fsaLogo} alt={COMPANY} width="356" height="125" loading="lazy" />
+          <p>Dependable car care since {FOUNDED}. Family-owned auto repair and tires for Lakewood, Denver and Wheat Ridge.</p>
           <div className="footer-social">
-            {SOCIAL_LINKS.filter(({ url }) => url).map(({ name, url, icon: Icon }) => (
+            {SOCIAL_LINKS.map(({ name, url, icon: Icon }) => (
               <a key={name} href={url} target="_blank" rel="noopener noreferrer" aria-label={name} title={name}><Icon size={16} /></a>
             ))}
           </div>
         </div>
         <div>
           <b>Services</b>
-          {SERVICES.slice(0, 5).map(({ title }) => <a key={title} href="#services">{title}</a>)}
+          {FEATURED.map(({ title }) => <a key={title} href="#services">{title}</a>)}
         </div>
         <div>
           <b>Shop</b>
-          <a href="#seasons">Seasonal Care Guide</a>
-          <a href="#about">Why Four Seasons</a>
+          <a href="#offers">Current offers</a>
+          <a href="#seasons">Seasonal care guide</a>
+          <a href="#about">Warranty &amp; financing</a>
           <a href="#reviews">Reviews</a>
-          <a href="#book">Book a Visit</a>
+          <a href={`mailto:${EMAIL}?subject=Job%20inquiry`}>Careers</a>
         </div>
         <div>
           <b>Contact</b>
           <a href={`tel:${PHONE}`}>{PHONE_DISPLAY}</a>
-          {EMAIL && <a href={`mailto:${EMAIL}`}>{EMAIL}</a>}
+          <a href={`mailto:${EMAIL}`}>{EMAIL}</a>
           <span>{ADDRESS}</span>
           <span>{CITY}</span>
           <span>Mon–Fri 7:30 am – 5:30 pm</span>
@@ -727,13 +816,13 @@ export default function App() {
       <SiteHeader />
       <main id="home">
         <Hero rating={rating} />
+        <Awards />
         <Services />
+        <Offers />
         <Seasons />
-        <Process />
         <About />
         <Reviews data={reviewData} rating={rating} />
-        <Book />
-        <Visit />
+        <BookVisit />
       </main>
       <Footer />
     </>
